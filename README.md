@@ -5,6 +5,6 @@ A fully-functioning chess engine. Imported from ReaLNeroM/Eclipse-CPP/Chess-Game
 SFML, G++ with C++14.
 
 # RUN
-execute compile.bat (multi-platform)
+execute compile.sh
 
 run the newly-created executable ChessGame
