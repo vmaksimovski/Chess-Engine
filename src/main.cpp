@@ -17,7 +17,7 @@ int main(){
 
 	BoardStructure::init();
 	sf::SoundBuffer buffer;
-	buffer.loadFromFile("Move.ogg");
+	buffer.loadFromFile("media/Move.ogg");
 	sf::Sound sound;
 	sound.setBuffer(buffer);
 
