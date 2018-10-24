@@ -9,8 +9,8 @@ namespace Magic {
 	const double pieceWorthCoefficient = 50.0;
 	const double INF = 1e10;
 	const double pieceWorth[] = {0, 1, 3.2, 3.33, 5.1, 8.8, 100000.0};
-	const int propagationLimit = 6;
 	color playerColor = Magic::color::white;
+	int propagationLimit = 6;
 	std::string boardString = "img/board.png";
 	std::string possibleMove = "img/highlight.png";
 

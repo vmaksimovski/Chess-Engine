@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <cstdlib> 
+#include <cstring>
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
@@ -11,9 +12,51 @@
 #include "gameHandler.h"
 #include "chessAI.h"
 
-int main(){
+bool validateInteger(char* array){
+	while(*array != '\0'){
+		std::cerr << *array << '\n';
+		if('0' > *array or *array > '9'){
+			return false;
+		}
+		array++;
+	}
+
+	return true;
+}
+
+void printHelp(){
+	std::cout << "ChessGame - a (nearly) fully functioned chess clone and chess engine. \n";
+	std::cout << "By default, the AI plays by itself.\n";
+	std::cout << " -b, --black          AI plays white, player plays black\n";
+	std::cout << " -w, --white          AI plays black, player plays white\n";
+	std::cout << " -m, --moves-ahead    How many moves ahead the AI simulates\n";
+	std::cout << " -h, --help           Print this help message.\n";
+}
+
+int main(int argc, char* argv[]){
 	sf::RenderWindow window(sf::VideoMode(Magic::size, Magic::size), "It Works!");
 	window.setFramerateLimit(60);
+
+	Magic::playerColor = Magic::color::none;
+
+	for(int i = 1; i < argc; i++){
+		if(strcmp(argv[i], "-h") == 0 or strcmp(argv[i], "--help") == 0){
+			printHelp();
+			exit(0);
+		} else if(strcmp(argv[i], "-w") == 0 or strcmp(argv[i], "--white") == 0){
+			Magic::playerColor = Magic::color::white;
+		} else if(strcmp(argv[i], "-b") == 0 or strcmp(argv[i], "--black") == 0){
+			Magic::playerColor = Magic::color::black;
+		} else if(strcmp(argv[i], "-m") == 0 or strcmp(argv[i], "--moves-ahead") == 0){
+			if(i + 1 != argc and validateInteger(argv[i + 1])){
+				Magic::propagationLimit = strtol(argv[i + 1], NULL, 10);
+			}
+			i++;
+		} else {
+			std::cerr << "ERR: unrecognized command\n";
+			exit(-1);
+		}
+	}
 
 	BoardStructure::init();
 	sf::SoundBuffer buffer;
@@ -83,7 +126,7 @@ int main(){
 			x != std::pair<sf::Vector2i,sf::Vector2i>{{-1, -1}, {-1, -2}}){
 			if(!AIMoved and GameHandler::attemptMove(BoardStructure::board[x.first.y][x.first.x], x.second, false)){
 				lastMove = x;
-				if(Magic::playerColor == Magic::color::none){
+				if(Magic::playerColor != Magic::color::none){
 					x = std::pair<sf::Vector2i,sf::Vector2i>{{-1, -1}, {-1, -2}};
 				}
 				sound.play();
