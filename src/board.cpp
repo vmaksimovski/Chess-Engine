@@ -47,20 +47,20 @@ namespace BoardStructure {
 
 		for(int i = 0; i < Magic::boardSize; i++){
 			for(int j = 0; j < Magic::boardSize; j++){
-				if(!board[i][j].checkDestroyed() and board[i][j].pieceColor != Magic::color::none){
-					if(board[i][j].pieceColor == currMoveColor){
-						sum += Magic::pieceWorthCoefficient * Magic::pieceWorth[board[i][j].pieceType];
-						if(board[i][j].pieceColor == Magic::color::white){
-							sum += Magic::pieceValue[board[i][j].pieceType][i][j];
+				if(!board[i][j].checkDestroyed() and board[i][j].getColor() != Magic::color::none){
+					if(board[i][j].getColor() == currMoveColor){
+						sum += Magic::pieceWorthCoefficient * Magic::pieceWorth[board[i][j].getType()];
+						if(board[i][j].getColor() == Magic::color::white){
+							sum += Magic::pieceValue[board[i][j].getType()][i][j];
 						} else {
-							sum += Magic::pieceValue[board[i][j].pieceType][7 - i][j];
+							sum += Magic::pieceValue[board[i][j].getType()][7 - i][j];
 						}
 					} else {
-						sum -= Magic::pieceWorthCoefficient * Magic::pieceWorth[board[i][j].pieceType];
-						if(board[i][j].pieceColor == Magic::color::white){
-							sum -= Magic::pieceValue[board[i][j].pieceType][i][j];
+						sum -= Magic::pieceWorthCoefficient * Magic::pieceWorth[board[i][j].getType()];
+						if(board[i][j].getColor() == Magic::color::white){
+							sum -= Magic::pieceValue[board[i][j].getType()][i][j];
 						} else {
-							sum -= Magic::pieceValue[board[i][j].pieceType][7 - i][j];
+							sum -= Magic::pieceValue[board[i][j].getType()][7 - i][j];
 						}
 					}
 				}
@@ -72,7 +72,7 @@ namespace BoardStructure {
 
 	Piece::Base* find(sf::Vector2i v){
 		v = Helper::getIndices(v);
-		if(Helper::withinBounds(v) and !board[v.y][v.x].checkDestroyed() and board[v.y][v.x].pieceColor == currMoveColor){
+		if(Helper::withinBounds(v) and !board[v.y][v.x].checkDestroyed() and board[v.y][v.x].getColor() == currMoveColor){
 			return &board[v.y][v.x];
 		}
 
@@ -104,8 +104,8 @@ namespace BoardStructure {
 
 		for(int i = 0; i < Magic::boardSize; i++){
 			for(int j = 0; j < Magic::boardSize; j++){
-				if(!board[i][j].checkDestroyed() and board[i][j].pieceColor != Magic::color::none and board[i][j].pieceType != Magic::type::blank){
-					if(currMoveColor == board[i][j].getColor() and currMoveColor != Magic::playerColor){
+				if(!board[i][j].checkDestroyed() and board[i][j].getColor() != Magic::color::none and board[i][j].getType() != Magic::type::blank){
+					if(currMoveColor == board[i][j].getColor()){
 						sf::RectangleShape rectangle(sf::Vector2f(Magic::cellSize, Magic::cellSize));
 						rectangle.setPosition(sf::Vector2f(j * Magic::cellSize, i * Magic::cellSize));
 						rectangle.setFillColor(sf::Color(0, 0, 0, 0));
@@ -114,10 +114,10 @@ namespace BoardStructure {
 						window.draw(rectangle);
 					}
 
-					x.setPosition(sf::Vector2f(board[i][j].boardPos.x * Magic::cellSize, board[i][j].boardPos.y * Magic::cellSize));
-					x.setTexture(Magic::pieceTextures[board[i][j].pieceColor][board[i][j].pieceType]);
-					x.setScale(sf::Vector2f((double) Magic::cellSize / Magic::pieceTextures[board[i][j].pieceColor][board[i][j].pieceType].getSize().x, 
-											   (double) Magic::cellSize / Magic::pieceTextures[board[i][j].pieceColor][board[i][j].pieceType].getSize().y));
+					x.setPosition(sf::Vector2f(board[i][j].getPosition().x * Magic::cellSize, board[i][j].getPosition().y * Magic::cellSize));
+					x.setTexture(Magic::pieceTextures[board[i][j].getColor()][board[i][j].getType()]);
+					x.setScale(sf::Vector2f((double) Magic::cellSize / Magic::pieceTextures[board[i][j].getColor()][board[i][j].getType()].getSize().x, 
+											   (double) Magic::cellSize / Magic::pieceTextures[board[i][j].getColor()][board[i][j].getType()].getSize().y));
 					window.draw(x);
 				}
 			}

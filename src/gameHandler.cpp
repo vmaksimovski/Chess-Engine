@@ -4,12 +4,12 @@ namespace GameHandler {
 	BoardStructure::BoardState board;
 	
 	bool isAttacked(sf::Vector2i boardPos, Magic::color attackingColor){
-		assert(BoardStructure::board[boardPos.y][boardPos.x].pieceColor != attackingColor);
+		assert(BoardStructure::board[boardPos.y][boardPos.x].getColor() != attackingColor);
 
 		for(int i = 0; i < Magic::boardSize; i++){
 			for(int j = 0; j < Magic::boardSize; j++){
 				sf::Vector2i nextPos = sf::Vector2i(j, i);
-				if(BoardStructure::board[i][j].pieceColor == attackingColor
+				if(BoardStructure::board[i][j].getColor() == attackingColor
 						 and !BoardStructure::board[i][j].checkDestroyed() 
 						 and validatePieceMove(nextPos, boardPos, BoardStructure::board[i][j], false)){
 					return true;
@@ -25,7 +25,7 @@ namespace GameHandler {
 			for(int l = 0; l < Magic::boardSize; l++){
 				sf::Vector2i newPos = sf::Vector2i(l, k);
 				if(Helper::withinBounds(newPos) and boardPos != newPos and (BoardStructure::board[newPos.y][newPos.x].checkDestroyed() or
-																						BoardStructure::board[newPos.y][newPos.x].pieceColor != currPiece.pieceColor)){
+																						BoardStructure::board[newPos.y][newPos.x].getColor() != currPiece.getColor())){
 					if(attemptMove(BoardStructure::board[boardPos.y][boardPos.x], newPos, false)){
 						BoardStructure::undoMove();
 						return true;
@@ -40,7 +40,7 @@ namespace GameHandler {
 	bool movePossible(Magic::color queryColor, bool check){
 		for(int i = 0; i < Magic::boardSize; i++){
 			for(int j = 0; j < Magic::boardSize; j++){
-				if(BoardStructure::board[i][j].pieceColor == queryColor and !BoardStructure::board[i][j].checkDestroyed()){
+				if(BoardStructure::board[i][j].getColor() == queryColor and !BoardStructure::board[i][j].checkDestroyed()){
 					sf::Vector2i startPos = sf::Vector2i(j, i);
 					if(canPieceMove(startPos, BoardStructure::board[i][j])){
 						return true;
@@ -56,7 +56,7 @@ namespace GameHandler {
 		sf::Vector2i kingPos = sf::Vector2i(-1, -1);
 		for(int i = 0; i < Magic::boardSize; i++){
 			for(int j = 0; j < Magic::boardSize; j++){
-				if(BoardStructure::board[i][j].pieceType == Magic::type::king and BoardStructure::board[i][j].pieceColor == kingColor){
+				if(BoardStructure::board[i][j].getType() == Magic::type::king and BoardStructure::board[i][j].getColor() == kingColor){
 					kingPos = sf::Vector2i(j, i);
 				}
 			}
@@ -94,10 +94,10 @@ namespace GameHandler {
 		if(BoardStructure::gameEnded){
 			return false;
 		}
-		sf::Vector2i startPos = currPiece.getBoardPos();
+		sf::Vector2i startPos = currPiece.getPosition();
 
 		if(!Helper::withinBounds(newPos) or startPos == newPos or (!BoardStructure::board[newPos.y][newPos.x].checkDestroyed() and
-																	BoardStructure::board[newPos.y][newPos.x].pieceColor == currPiece.pieceColor)){
+																	BoardStructure::board[newPos.y][newPos.x].getColor() == currPiece.getColor())){
 			return false;
 		}
 
@@ -106,19 +106,17 @@ namespace GameHandler {
 			return false;
 		}
 
-		currPiece.moveId = BoardStructure::boardHistorySize;
-
-		currPiece.boardPos = newPos;
+		currPiece.move(newPos, BoardStructure::boardHistorySize);
 
 		BoardStructure::board[newPos.y][newPos.x].setDestroyed();
 
-		if(BoardStructure::board[startPos.y][startPos.x].pieceType == Magic::type::pawn and (newPos.y == 0 or newPos.y == Magic::boardSize - 1)){
+		if(BoardStructure::board[startPos.y][startPos.x].getType() == Magic::type::pawn and (newPos.y == 0 or newPos.y == Magic::boardSize - 1)){
 			pawnUpgrade(currPiece, !queryForPawnUpgrade);
 		}
 
 		std::swap(BoardStructure::board[startPos.y][startPos.x], BoardStructure::board[newPos.y][newPos.x]);
 
-		if(isKingAttacked(BoardStructure::board[newPos.y][newPos.x].pieceColor)){
+		if(isKingAttacked(BoardStructure::board[newPos.y][newPos.x].getColor())){
 			BoardStructure::recordMove();
 			BoardStructure::undoMove();
 			return false;
@@ -129,7 +127,7 @@ namespace GameHandler {
 	}
 
 	void pawnUpgrade(Piece::Base& currPiece, bool assumeQueen){
-		Magic::type newPieceType = Magic::type::queen;
+		Magic::type upgradeType = Magic::type::queen;
 
 		if(!assumeQueen){
 			std::cout << "What piece would you like to upgrade to? (1 for a knight, 2 for a bishop, 3 for a rook, and 4 for a queen)" << std::endl;
@@ -142,21 +140,21 @@ namespace GameHandler {
 			}
 			
 			if(x == 1){
-				newPieceType = Magic::type::knight;
+				upgradeType = Magic::type::knight;
 			} else if(x == 2){
-				newPieceType = Magic::type::bishop;
+				upgradeType = Magic::type::bishop;
 			} else if(x == 3){
-				newPieceType = Magic::type::rook;
+				upgradeType = Magic::type::rook;
 			} else if(x == 4){
-				newPieceType = Magic::type::queen;
+				upgradeType = Magic::type::queen;
 			}
 		}
 
-		currPiece = Piece::Base(currPiece.pieceColor, newPieceType, currPiece.boardPos);
+		currPiece = Piece::Base(currPiece.getColor(), upgradeType, currPiece.getPosition());
 	}
 
 	bool validatePieceMove(sf::Vector2i startPos, sf::Vector2i newPos, Piece::Base& currPiece, bool performMovement){
-		switch (currPiece.pieceType) {
+		switch (currPiece.getType()) {
 		case Magic::type::pawn:
 			if (!pawnValidateMove(startPos, newPos, currPiece, performMovement)){
 				return false;
@@ -196,7 +194,7 @@ namespace GameHandler {
 
 	bool pawnValidateMove(sf::Vector2i boardPos, sf::Vector2i newPos, Piece::Base& currPiece, bool performMovement){
 		int step = 0;
-		if(currPiece.pieceColor == Magic::color::black){
+		if(currPiece.getColor() == Magic::color::black){
 			step = 1;
 		} else {
 			step = -1;
@@ -205,21 +203,18 @@ namespace GameHandler {
 		if(boardPos.x == newPos.x){
 			if(boardPos.y + step == newPos.y and BoardStructure::board[newPos.y][newPos.x].checkDestroyed()){
 				return true;
-			} else if(currPiece.moveId == 0 and boardPos.y + 2 * step == newPos.y and BoardStructure::board[boardPos.y + step][boardPos.x].checkDestroyed() and
+			} else if(currPiece.getLastMoveID() == 0 and boardPos.y + 2 * step == newPos.y and BoardStructure::board[boardPos.y + step][boardPos.x].checkDestroyed() and
 																			BoardStructure::board[boardPos.y + 2 * step][boardPos.x].checkDestroyed()){
-				if(performMovement){
-					BoardStructure::board[boardPos.y][boardPos.x].pawnTwoRowJump = true;
-				}
 				return true;
 			}
 		} else if((boardPos.x - 1 == newPos.x or boardPos.x + 1 == newPos.x) and boardPos.y + step == newPos.y and !BoardStructure::board[newPos.y][newPos.x].checkDestroyed()){
 			return true;
 		} else if((boardPos.x - 1 == newPos.x or boardPos.x + 1 == newPos.x) and boardPos.y + step == newPos.y and ((step == 1 and boardPos.y == 4) or (step == -1 and boardPos.y == 3))
 																				and !BoardStructure::board[boardPos.y][newPos.x].checkDestroyed()
-																				and BoardStructure::board[boardPos.y][newPos.x].pieceColor != currPiece.pieceColor
-																			  	and BoardStructure::board[boardPos.y][newPos.x].pieceType == Magic::type::pawn
-																			  	and BoardStructure::board[boardPos.y][newPos.x].moveId + 1 == BoardStructure::boardHistorySize
-																			  	and BoardStructure::board[boardPos.y][newPos.x].pawnTwoRowJump){
+																				and BoardStructure::board[boardPos.y][newPos.x].getColor() != currPiece.getColor()
+																			  	and BoardStructure::board[boardPos.y][newPos.x].getType() == Magic::type::pawn
+																			  	and BoardStructure::board[boardPos.y][newPos.x].getLastMoveID() + 1 == BoardStructure::boardHistorySize
+																			  	and BoardStructure::board[boardPos.y][newPos.x].getMoveCount() == 1){
 			if(performMovement){
 				BoardStructure::board[boardPos.y][newPos.x].setDestroyed();
 			}
@@ -315,15 +310,15 @@ namespace GameHandler {
 			return true;
 		}
 
-		if(currPiece.moveId == 0 and boardPos.y == newPos.y){
+		if(currPiece.getLastMoveID() == 0 and boardPos.y == newPos.y){
 			if(newPos.x == 2){
 				Piece::Base& partnerRook = BoardStructure::board[newPos.y][newPos.x - 2];
 
-				if(!isAttacked(boardPos, Helper::getOtherColor(currPiece.pieceColor)) and !partnerRook.checkDestroyed() and
+				if(!isAttacked(boardPos, Helper::getOtherColor(currPiece.getColor())) and !partnerRook.checkDestroyed() and
 						partnerRook.getColor() == currPiece.getColor() and
-						partnerRook.moveId == 0 and 
+						partnerRook.getLastMoveID() == 0 and 
 						BoardStructure::board[newPos.y][newPos.x + 1].checkDestroyed() and
-						rookValidateMove(partnerRook.boardPos, sf::Vector2i(boardPos.x, boardPos.y))){
+						rookValidateMove(partnerRook.getPosition(), sf::Vector2i(boardPos.x, boardPos.y))){
 					if(performMovement){
 						partnerRook.setPosition(sf::Vector2i(newPos.x + 1, newPos.y));
 						std::swap(BoardStructure::board[newPos.y][newPos.x - 2], BoardStructure::board[newPos.y][newPos.x + 1]);
@@ -333,11 +328,11 @@ namespace GameHandler {
 			} else if(newPos.x == Magic::boardSize - 2){
 				Piece::Base& partnerRook = BoardStructure::board[newPos.y][newPos.x + 1];
 
-				if(!isAttacked(boardPos, Helper::getOtherColor(currPiece.pieceColor)) and !partnerRook.checkDestroyed() and
+				if(!isAttacked(boardPos, Helper::getOtherColor(currPiece.getColor())) and !partnerRook.checkDestroyed() and
 						partnerRook.getColor() == currPiece.getColor() and
-						partnerRook.moveId == 0 and 
+						partnerRook.getLastMoveID() == 0 and 
 						BoardStructure::board[newPos.y][newPos.x - 1].checkDestroyed() and
-						rookValidateMove(partnerRook.boardPos, sf::Vector2i(boardPos.x, boardPos.y))){
+						rookValidateMove(partnerRook.getPosition(), sf::Vector2i(boardPos.x, boardPos.y))){
 					if(performMovement){
 						partnerRook.setPosition(sf::Vector2i(newPos.x - 1, newPos.y));
 						std::swap(BoardStructure::board[newPos.y][newPos.x - 1], BoardStructure::board[newPos.y][newPos.x + 1]);

@@ -36,13 +36,13 @@ namespace AI {
 		for(int i = 0; i < Magic::boardSize; i++){
 			for(int j = 0; j < Magic::boardSize; j++){
 				if(!BoardStructure::board[i][j].checkDestroyed() and 
-					BoardStructure::board[i][j].pieceColor == BoardStructure::currMoveColor){
+					BoardStructure::board[i][j].getColor() == BoardStructure::currMoveColor){
 					sf::Vector2i startPos = sf::Vector2i(j, i);
 					for(int k = 0; k < Magic::boardSize; k++){
 						for(int l = 0; l < Magic::boardSize; l++){
 							sf::Vector2i newPos = sf::Vector2i(l, k);
 							if(Helper::withinBounds(newPos) and startPos != newPos and (BoardStructure::board[newPos.y][newPos.x].checkDestroyed() or
-																									BoardStructure::board[newPos.y][newPos.x].pieceColor != BoardStructure::currMoveColor)){
+																									BoardStructure::board[newPos.y][newPos.x].getColor() != BoardStructure::currMoveColor)){
 								if(GameHandler::validatePieceMove(startPos, newPos, BoardStructure::board[startPos.y][startPos.x], false) and
 									 GameHandler::attemptMove(BoardStructure::board[startPos.y][startPos.x], newPos, false)){
 									auto response = dfs(movesLeft + 1, alpha, beta);
