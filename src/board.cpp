@@ -8,20 +8,16 @@ namespace BoardStructure {
 	Magic::color currMoveColor;
 	BoardState initBoard;
 
-	void initTextures(){
+	void init(){
+		currMoveColor = Magic::color::white;
+		boardHistory.clear();
+
 		for(int i = 0; i < 2; i++){
 			for(int j = 0; j < Magic::pieces; j++){
 				Magic::pieceTextures[i][j].loadFromFile(Magic::location[i][j]);
 				Magic::pieceTextures[i][j].setSmooth(true);
 			}
 		}
-	}
-
-	void init(){
-		currMoveColor = Magic::color::white;
-		boardHistory.clear();
-
-		initTextures();
 
 		for(int i = 0; i < Magic::boardSize; i++){
 			for(int j = 0; j < Magic::boardSize; j++){

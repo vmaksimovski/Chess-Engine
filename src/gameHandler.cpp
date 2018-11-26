@@ -1,8 +1,6 @@
 #include "gameHandler.h"
 
 namespace GameHandler {
-	BoardStructure::BoardState board;
-	
 	bool isAttacked(sf::Vector2i boardPos, Magic::color attackingColor){
 		assert(BoardStructure::board[boardPos.y][boardPos.x].getColor() != attackingColor);
 
